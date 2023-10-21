@@ -29,7 +29,7 @@ final class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Home"
-        view.backgroundColor = .purple
+        view.backgroundColor = UIColor(cgColor: CGColor(red: 244, green: 244, blue: 244, alpha: 1.0))
         setupDataSource()
         setupLayout()
         setupConstraint()
