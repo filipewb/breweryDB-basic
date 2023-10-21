@@ -9,11 +9,34 @@ import UIKit
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
-
+    
+    private func configureNavigationBar() {
+        let backButtonattributes: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.foregroundColor: UIColor.clear
+        ]
+        
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.foregroundColor: UIColor.white
+        ]
+        
+        let navBarAppearance = UINavigationBarAppearance()
+        
+        navBarAppearance.configureWithOpaqueBackground()
+        navBarAppearance.backgroundColor = .systemBlue
+        navBarAppearance.titleTextAttributes = titleAttributes
+        
+        let backButtonappearance = UIBarButtonItemAppearance()
+        backButtonappearance.normal.titleTextAttributes = backButtonattributes
+        
+        navBarAppearance.backButtonAppearance = backButtonappearance
+        
+        UINavigationBar.appearance().standardAppearance = navBarAppearance
+        UINavigationBar.appearance().compactAppearance = navBarAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
+    }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        configureNavigationBar()
         return true
     }
 
