@@ -104,18 +104,18 @@ extension HomeViewController: UISearchBarDelegate {
 
 extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if filteredDataArray.isEmpty {
+        if yourDataArray.isEmpty {
             tableView.backgroundView = emptyResultLabel
             return 0
         } else {
             tableView.backgroundView = nil
-            return filteredDataArray.count
+            return yourDataArray.count
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "BeerCell", for: indexPath) as! BeerTableViewCell
-        cell.labelTitle.text = yourDataArray[indexPath.row].name
+        cell.beer = yourDataArray[indexPath.row]
         cell.accessoryType = .disclosureIndicator
         return cell
     }

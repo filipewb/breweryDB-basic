@@ -14,6 +14,7 @@
 		8815625D2AE3685100D268C4 /* BeerTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8815625C2AE3685100D268C4 /* BeerTableViewCell.swift */; };
 		881562612AE36B6300D268C4 /* UICollectionReusableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881562602AE36B6300D268C4 /* UICollectionReusableView.swift */; };
 		881562642AE3704000D268C4 /* Beer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881562632AE3704000D268C4 /* Beer.swift */; };
+		8894F7882AE60D3100B85CA1 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 8894F7872AE60D3100B85CA1 /* Kingfisher */; };
 		88B90E9F2AE575BC00652B4D /* BeerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B90E9E2AE575BC00652B4D /* BeerAPI.swift */; };
 		88B90EA22AE57B2500652B4D /* BeersInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B90EA12AE57B2500652B4D /* BeersInteractor.swift */; };
 		88E3F7132AE356A900BFA273 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E3F7122AE356A900BFA273 /* AppDelegate.swift */; };
@@ -47,6 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8894F7882AE60D3100B85CA1 /* Kingfisher in Frameworks */,
 				8815624E2AE35E0C00D268C4 /* Networking in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -214,6 +216,7 @@
 			name = brewery;
 			packageProductDependencies = (
 				8815624D2AE35E0C00D268C4 /* Networking */,
+				8894F7872AE60D3100B85CA1 /* Kingfisher */,
 			);
 			productName = brewery;
 			productReference = 88E3F70F2AE356A900BFA273 /* brewery.app */;
@@ -244,6 +247,7 @@
 			);
 			mainGroup = 88E3F7062AE356A800BFA273;
 			packageReferences = (
+				8894F7862AE60D3100B85CA1 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			productRefGroup = 88E3F7102AE356A900BFA273 /* Products */;
 			projectDirPath = "";
@@ -505,10 +509,26 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		8894F7862AE60D3100B85CA1 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 7.9.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		8815624D2AE35E0C00D268C4 /* Networking */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Networking;
+		};
+		8894F7872AE60D3100B85CA1 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8894F7862AE60D3100B85CA1 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

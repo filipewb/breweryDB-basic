@@ -6,27 +6,33 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class BeerTableViewCell: UITableViewCell {
     
-    private lazy var image: UIImageView = {
+    var beer: Beer? {
+        didSet {
+            image.kf.setImage(with: beer?.imageURL)
+            labelTitle.text = beer?.name
+            labelSubTitle.text = beer?.tagline
+        }
+    }
+    
+    lazy var image: UIImageView = {
         let image = UIImageView()
         image.contentMode = .scaleAspectFit
-        image.image = UIImage(named: "placeholder.png")
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
     
     lazy var labelTitle: UILabel = {
         let label = UILabel()
-        label.text = "Titulo"
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    private lazy var labelSubTitle: UILabel = {
+    lazy var labelSubTitle: UILabel = {
         let label = UILabel()
-        label.text = "Subtitulo"
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

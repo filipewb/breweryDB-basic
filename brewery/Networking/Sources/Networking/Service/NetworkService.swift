@@ -44,7 +44,7 @@ private extension NetworkServiceImpl {
     
     func buildRequest(from route: EndPoint) throws -> URLRequest {
         var request = URLRequest(
-            url: route.baseURL.appendingPathComponent(route.path),
+            url: URL(string: "\(route.baseURL.absoluteURL)\(route.path)")!,
             cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
             timeoutInterval: 10.0
         )
