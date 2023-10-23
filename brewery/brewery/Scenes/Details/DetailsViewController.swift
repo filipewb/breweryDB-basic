@@ -8,7 +8,7 @@
 import UIKit
 
 class DetailsViewController: UIViewController {
-    var selectedItem: String?
+    var selectedItem: Beer?
     
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -25,28 +25,24 @@ class DetailsViewController: UIViewController {
     private lazy var image: UIImageView = {
         let image = UIImageView()
         image.contentMode = .scaleAspectFit
-        image.image = UIImage(named: "placeholder.png")
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
     
     private lazy var labelTitle: UILabel = {
         let label = UILabel()
-        label.text = "Titulo"
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     private lazy var labelSubTitle: UILabel = {
         let label = UILabel()
-        label.text = "Subtitulo"
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Our flagship beer that kick started the craft beer revolution. This is James and Martin's original take on an American IPA, subverted with punchy New Zealand hops. Layered with new world hops to create an all-out riot of grapefruit, pineapple and lychee before a spiky, mouth-puckering bitter finish."
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -57,6 +53,31 @@ class DetailsViewController: UIViewController {
 
         self.title = "Detalhes"
         view.backgroundColor = UIColor(cgColor: CGColor(red: 250, green: 250, blue: 250, alpha: 1.0))
+        
+        if let selectedItem = selectedItem {
+            labelTitle.text = selectedItem.name
+            labelSubTitle.text = selectedItem.tagline
+            descriptionLabel.text = selectedItem.description
+            
+            if let imageURL = selectedItem.imageURL {
+                URLSession.shared.dataTask(with: imageURL) { data, response, error in
+                    if let data = data {
+                        DispatchQueue.main.async {
+                            if let image = UIImage(data: data) {
+                                self.image.image = image
+                            } else {
+                                self.image.image = UIImage(named: "placeholder.png")
+                            }
+                        }
+                    } else if let error = error {
+                        print("Erro ao carregar imagem: \(error.localizedDescription)")
+                        self.image.image = UIImage(named: "placeholder.png")
+                    }
+                }.resume()
+            } else {
+                self.image.image = UIImage(named: "placeholder.png")
+            }
+        }
         
         let backButton = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backButtonTapped))
         backButton.tintColor = .white

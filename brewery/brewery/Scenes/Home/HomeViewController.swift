@@ -121,10 +121,10 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedItem = filteredDataArray[indexPath.row]
+        let selectedBeer = yourDataArray[indexPath.row]
         
         let details = DetailsViewController()
-        details.selectedItem = selectedItem
+        details.selectedItem = selectedBeer
         
         self.navigationController?.pushViewController(details, animated: true)
     }
