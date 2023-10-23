@@ -11,6 +11,7 @@ struct Beer: Codable, Identifiable, Hashable {
     let id: Int
     let name, tagline, description: String
     let imageURL: URL?
+    var isFavorite: Bool = false
 
     enum CodingKeys: String, CodingKey {
         case id, name, tagline

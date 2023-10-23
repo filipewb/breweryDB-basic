@@ -83,8 +83,35 @@ class DetailsViewController: UIViewController {
         backButton.tintColor = .white
         self.navigationItem.leftBarButtonItem = backButton
         
+        let favoriteButton = UIBarButtonItem(image: UIImage(systemName: "star"), style: .plain, target: self, action: #selector(favoriteButtonTapped))
+        favoriteButton.tintColor = .white
+        self.navigationItem.rightBarButtonItem = favoriteButton
+        
+        if let selectedItem = selectedItem {
+            if selectedItem.isFavorite {
+                self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star.fill")
+            } else {
+                self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star")
+            }
+        }
+        
+        if let selectedItem = selectedItem {
+            var updatedBeer = selectedItem
+            updatedBeer.isFavorite = isBeerFavorite(item: selectedItem)
+            self.selectedItem = updatedBeer
+            updateFavoriteButtonUI()
+            saveFavoriteBeers()
+        }
+        
         setupView()
         setupConstraints()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        // Atualizar a interface do botão de favoritos
+        updateFavoriteButtonUI()
     }
     
     private func setupView() {
@@ -130,5 +157,55 @@ class DetailsViewController: UIViewController {
     
     @objc func backButtonTapped() {
         navigationController?.popViewController(animated: true)
+    }
+    
+    @objc func favoriteButtonTapped() {
+        // Alternar o estado de favorito da cerveja
+        selectedItem?.isFavorite.toggle()
+        updateFavoriteButtonUI()
+
+        // Salvar as cervejas favoritas no UserDefaults
+        saveFavoriteBeers()
+    }
+
+    func updateFavoriteButtonUI() {
+        if selectedItem?.isFavorite ?? false {
+            self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star.fill")
+        } else {
+            self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star")
+        }
+    }
+
+    func saveFavoriteBeers() {
+        // Obter as cervejas favoritas atuais do UserDefaults (se houver)
+        var favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] ?? []
+
+        // Verificar se a cerveja está na lista de favoritos
+        if let selectedItem = selectedItem {
+            if selectedItem.isFavorite {
+                // Adicionar o ID da cerveja à lista de favoritos
+                if !favoriteBeerIds.contains(selectedItem.id) {
+                    favoriteBeerIds.append(selectedItem.id)
+                }
+            } else {
+                // Remover o ID da cerveja da lista de favoritos
+                if let index = favoriteBeerIds.firstIndex(of: selectedItem.id) {
+                    favoriteBeerIds.remove(at: index)
+                }
+            }
+
+            // Salvar a lista atualizada no UserDefaults
+            UserDefaults.standard.set(favoriteBeerIds, forKey: "favoriteBeerIds")
+            
+            // Sincronizar os dados
+            UserDefaults.standard.synchronize()
+        }
+    }
+    
+    func isBeerFavorite(item: Beer) -> Bool {
+        if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
+            return favoriteBeerIds.contains(item.id)
+        }
+        return false
     }
 }

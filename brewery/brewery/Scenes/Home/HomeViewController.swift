@@ -43,10 +43,23 @@ final class HomeViewController: UIViewController {
         super.viewDidLoad()
         title = "Beer List"
         view.backgroundColor = UIColor(cgColor: CGColor(red: 244, green: 244, blue: 244, alpha: 1.0))
+        
+        // Carregar IDs das cervejas favoritas do UserDefaults
+        if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
+            // Atualizar a propriedade isFavorite das cervejas
+            for index in 0..<yourDataArray.count {
+                if favoriteBeerIds.contains(yourDataArray[index].id) {
+                    var mutableBeer = yourDataArray[index]
+                    mutableBeer.isFavorite = true
+                    yourDataArray[index] = mutableBeer
+                }
+            }
+        }
+        
         interactor.getBeers(page: 1) { [weak self] result in
             switch result {
             case .success(let beers):
-                self?.yourDataArray.append(contentsOf: beers)
+                self?.yourDataArray = beers
                 self?.tableView.reloadData()
             case .failure(let error):
                 print(error)
@@ -54,22 +67,44 @@ final class HomeViewController: UIViewController {
             }
         }
         
-//        filteredDataArray = yourDataArray
+        func isBeerFavorite(item: Beer) -> Bool {
+            if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
+                return favoriteBeerIds.contains(item.id)
+            }
+            return false
+        }
         
         tableView.register(BeerTableViewCell.self, forCellReuseIdentifier: "BeerCell")
-
+        
         setupLayout()
         setupConstraint()
-
-        tableView.reloadData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        tableView.reloadData()
+        
         if let selectedIndexPath = tableView.indexPathForSelectedRow {
             tableView.deselectRow(at: selectedIndexPath, animated: true)
         }
+        
+        // Atualize o estado das cervejas favoritas
+        updateFavoriteStates()
+    }
+    
+    func isBeerFavorite(item: Beer) -> Bool {
+        if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
+            return favoriteBeerIds.contains(item.id)
+        }
+        return false
+    }
+    
+    func updateFavoriteStates() {
+        for (index, beer) in yourDataArray.enumerated() {
+            yourDataArray[index].isFavorite = isBeerFavorite(item: beer)
+        }
+        tableView.reloadData()
     }
     
     private func setupLayout() {

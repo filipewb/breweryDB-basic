@@ -37,6 +37,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureNavigationBar()
+        
+        let memoryCapacity = 20 * 1024 * 1024
+        let diskCapacity = 100 * 1024 * 1024
+        let cache = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: "myCachePath")
+        URLCache.shared = cache
+        
         return true
     }
 
