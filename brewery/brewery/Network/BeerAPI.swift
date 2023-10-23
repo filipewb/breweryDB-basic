@@ -14,13 +14,13 @@ enum BeerAPI {
 
 extension BeerAPI: EndPointType {
     var baseURL: URL {
-        URL(string: "https://api.punkapi.com/v2/")!
+        URL(string: Environment.baseUrl)!
     }
     
     var path: String {
         switch self {
-        case .getBeer:
-            return "beers/"
+        case .getBeer(let page):
+            return "beers?page=\(page)&per_page=20"
         }
     }
     
@@ -33,10 +33,8 @@ extension BeerAPI: EndPointType {
     
     var task: Networking.HTTPTask {
         switch self {
-        case .getBeer(let page):
-            return .requestParameters(bodyParameters: nil,
-                                      bodyEncoding: .urlEncoding,
-                                      urlParameters: ["page": page])
+        case .getBeer:
+            return .request
         }
     }
     

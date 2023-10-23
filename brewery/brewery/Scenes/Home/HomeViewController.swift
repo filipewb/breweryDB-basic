@@ -7,88 +7,126 @@
 
 import UIKit
 
-private enum Section: Hashable {
-    case main
-}
-
-private enum Item: Hashable {
-    case beer(Beer)
-}
-
 final class HomeViewController: UIViewController {
-    private var dataSource: UICollectionViewDiffableDataSource<Section, Item>?
+    lazy var interactor = BeersInteractorImpl()
     
-    private lazy var collectionView: UICollectionView = {
-        let view = UICollectionView(frame: CGRect.zero, collectionViewLayout: UICollectionViewLayout.init())
+    var yourDataArray: [Beer] = []
+    var filteredDataArray: [String] = []
+    
+    private lazy var searchBar: UISearchBar = {
+        let search = UISearchBar()
+        search.placeholder = "Pesquisar"
+        search.barTintColor = UIColor(cgColor: CGColor(red: 74, green: 144, blue: 226, alpha: 1))
+        search.delegate = self
+        search.translatesAutoresizingMaskIntoConstraints = false
+        return search
+    }()
+    
+    private lazy var tableView: UITableView = {
+        let view = UITableView()
+        view.dataSource = self
+        view.delegate = self
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .none
-        view.register(BeerCollectionViewCell.self, forCellWithReuseIdentifier: BeerCollectionViewCell.cellIdentifier())
         return view
+    }()
+    
+    private lazy var emptyResultLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Nenhum resultado encontrado"
+        label.textAlignment = .center
+        label.textColor = .gray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Home"
+        title = "Beer List"
         view.backgroundColor = UIColor(cgColor: CGColor(red: 244, green: 244, blue: 244, alpha: 1.0))
-        setupDataSource()
-        setupLayout()
-        setupConstraint()
-        
-        var recentsSnapshot = NSDiffableDataSourceSectionSnapshot<Item>()
-        recentsSnapshot.append([Item.beer(Beer(id: 1, name: "teste", tagline: "teste", description: "testew", imageURL: "teste"))])
-        
-        self.dataSource?.apply(recentsSnapshot, to: .main, animatingDifferences: false)
-    }
-    
-    private func createLayout() -> UICollectionViewLayout {
-        let sectionProvider = { (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
-            
-            let sectionLayout: NSCollectionLayoutSection
-            
-            let itemSize: NSCollectionLayoutSize = .init(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(101))
-            let item: NSCollectionLayoutItem = .init(layoutSize: itemSize)
-            item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
-            
-            let groupSize: NSCollectionLayoutSize = .init(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
-            let group: NSCollectionLayoutGroup = .vertical(layoutSize: groupSize, subitems: [item])
-            
-            sectionLayout = NSCollectionLayoutSection(group: group)
-            
-            return sectionLayout
+        interactor.getBeers(page: 1) { [weak self] result in
+            switch result {
+            case .success(let beers):
+                self?.yourDataArray.append(contentsOf: beers)
+                self?.tableView.reloadData()
+            case .failure(let error):
+                print(error)
+                break
+            }
         }
         
-        return UICollectionViewCompositionalLayout(sectionProvider: sectionProvider)
+//        filteredDataArray = yourDataArray
+        
+        tableView.register(BeerTableViewCell.self, forCellReuseIdentifier: "BeerCell")
+
+        setupLayout()
+        setupConstraint()
+
+        tableView.reloadData()
     }
     
-    private func setupDataSource() {
-        self.dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) {
-            (collectionView: UICollectionView, indexPath: IndexPath, item: Item) -> UICollectionViewCell? in
-            
-            switch item {
-                
-            case .beer:
-                
-                let cell: BeerCollectionViewCell = collectionView.dequeueReusableCell(
-                    withReuseIdentifier: BeerCollectionViewCell.cellIdentifier(),
-                    for: indexPath
-                ) as! BeerCollectionViewCell
-                
-                return cell
-            }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        if let selectedIndexPath = tableView.indexPathForSelectedRow {
+            tableView.deselectRow(at: selectedIndexPath, animated: true)
         }
     }
     
     private func setupLayout() {
-        view.addSubview(collectionView)
-        collectionView.collectionViewLayout = createLayout()
+        view.addSubview(searchBar)
+        view.addSubview(tableView)
     }
     
     private func setupConstraint() {
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
 }
+
+extension HomeViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+//            filteredDataArray = yourDataArray
+        } else {
+//            filteredDataArray = yourDataArray.filter { $0.lowercased().contains(searchText.lowercased()) }
+        }
+        tableView.reloadData()
+    }
+}
+
+extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if filteredDataArray.isEmpty {
+            tableView.backgroundView = emptyResultLabel
+            return 0
+        } else {
+            tableView.backgroundView = nil
+            return filteredDataArray.count
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "BeerCell", for: indexPath) as! BeerTableViewCell
+        cell.labelTitle.text = yourDataArray[indexPath.row].name
+        cell.accessoryType = .disclosureIndicator
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedItem = filteredDataArray[indexPath.row]
+        
+        let details = DetailsViewController()
+        details.selectedItem = selectedItem
+        
+        self.navigationController?.pushViewController(details, animated: true)
+    }
+}
+

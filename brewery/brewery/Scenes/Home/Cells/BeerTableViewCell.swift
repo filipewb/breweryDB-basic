@@ -7,9 +7,9 @@
 
 import UIKit
 
-final class BeerCollectionViewCell: UICollectionViewCell {
+final class BeerTableViewCell: UITableViewCell {
     
-    private lazy var imageView: UIImageView = {
+    private lazy var image: UIImageView = {
         let image = UIImageView()
         image.contentMode = .scaleAspectFit
         image.image = UIImage(named: "placeholder.png")
@@ -17,7 +17,7 @@ final class BeerCollectionViewCell: UICollectionViewCell {
         return image
     }()
     
-    private lazy var labelTitle: UILabel = {
+    lazy var labelTitle: UILabel = {
         let label = UILabel()
         label.text = "Titulo"
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -31,8 +31,8 @@ final class BeerCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.backgroundColor = .systemGray6
         
         self.setupView()
@@ -44,24 +44,25 @@ final class BeerCollectionViewCell: UICollectionViewCell {
     }
     
     private func setupView() {
-        contentView.addSubview(imageView)
+        contentView.addSubview(image)
         contentView.addSubview(labelTitle)
         contentView.addSubview(labelSubTitle)
     }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 10),
-            imageView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 80),
-            imageView.heightAnchor.constraint(equalToConstant: 80),
+            image.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 10),
+            image.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
+            image.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -10),
+            image.widthAnchor.constraint(equalToConstant: 80),
+            image.heightAnchor.constraint(equalToConstant: 80),
             
             labelTitle.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 25),
             labelTitle.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -15),
-            labelTitle.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 15),
+            labelTitle.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 15),
             
             labelSubTitle.topAnchor.constraint(equalTo: labelTitle.bottomAnchor, constant: 10),
-            labelSubTitle.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 15),
+            labelSubTitle.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 15),
             labelSubTitle.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -15),
         ])
     }
