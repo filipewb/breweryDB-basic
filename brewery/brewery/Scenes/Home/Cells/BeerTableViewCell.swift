@@ -12,26 +12,27 @@ final class BeerTableViewCell: UITableViewCell {
     
     var beer: Beer? {
         didSet {
-            image.kf.setImage(with: beer?.imageURL)
-            labelTitle.text = beer?.name
-            labelSubTitle.text = beer?.tagline
+            guard let beer else { return }
+            image.kf.setImage(with: beer.imageURL)
+            labelTitle.text = beer.name
+            labelSubTitle.text = beer.tagline
         }
     }
     
-    lazy var image: UIImageView = {
+    private lazy var image: UIImageView = {
         let image = UIImageView()
         image.contentMode = .scaleAspectFit
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
     
-    lazy var labelTitle: UILabel = {
+    private lazy var labelTitle: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    lazy var labelSubTitle: UILabel = {
+    private lazy var labelSubTitle: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -47,6 +48,11 @@ final class BeerTableViewCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        image.kf.cancelDownloadTask()
     }
     
     private func setupView() {

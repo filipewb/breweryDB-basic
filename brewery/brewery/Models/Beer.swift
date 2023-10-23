@@ -25,6 +25,5 @@ struct Beer: Codable, Identifiable, Hashable {
         tagline = try container.decode(String.self, forKey: .tagline)
         description = try container.decode(String.self, forKey: .description)
         imageURL = try container.decodeIfPresent(URL.self, forKey: .imageURL)
-        print(imageURL?.absoluteString)
     }
 }
