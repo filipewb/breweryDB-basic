@@ -110,7 +110,6 @@ class DetailsViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        // Atualizar a interface do botão de favoritos
         updateFavoriteButtonUI()
     }
     
@@ -160,11 +159,9 @@ class DetailsViewController: UIViewController {
     }
     
     @objc func favoriteButtonTapped() {
-        // Alternar o estado de favorito da cerveja
         selectedItem?.isFavorite.toggle()
         updateFavoriteButtonUI()
 
-        // Salvar as cervejas favoritas no UserDefaults
         saveFavoriteBeers()
     }
 
@@ -177,27 +174,21 @@ class DetailsViewController: UIViewController {
     }
 
     func saveFavoriteBeers() {
-        // Obter as cervejas favoritas atuais do UserDefaults (se houver)
         var favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] ?? []
 
-        // Verificar se a cerveja está na lista de favoritos
         if let selectedItem = selectedItem {
             if selectedItem.isFavorite {
-                // Adicionar o ID da cerveja à lista de favoritos
                 if !favoriteBeerIds.contains(selectedItem.id) {
                     favoriteBeerIds.append(selectedItem.id)
                 }
             } else {
-                // Remover o ID da cerveja da lista de favoritos
                 if let index = favoriteBeerIds.firstIndex(of: selectedItem.id) {
                     favoriteBeerIds.remove(at: index)
                 }
             }
 
-            // Salvar a lista atualizada no UserDefaults
             UserDefaults.standard.set(favoriteBeerIds, forKey: "favoriteBeerIds")
             
-            // Sincronizar os dados
             UserDefaults.standard.synchronize()
         }
     }

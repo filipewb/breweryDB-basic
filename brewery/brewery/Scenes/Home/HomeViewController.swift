@@ -20,7 +20,7 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
     
     private lazy var searchBar: UISearchBar = {
         let search = UISearchBar()
-        search.placeholder = "Pesquisar"
+        search.placeholder = "Search"
         search.barTintColor = UIColor(cgColor: CGColor(red: 74, green: 144, blue: 226, alpha: 1))
         search.delegate = self
         search.translatesAutoresizingMaskIntoConstraints = false
@@ -158,7 +158,7 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
     }
     
     @objc func filterButtonTapped() {
-        showFavoritesOnly.toggle() // Alternar o valor do filtro
+        showFavoritesOnly.toggle()
         if showFavoritesOnly {
             filteredDataArray = yourDataArray.filter { $0.isFavorite }
             filterButton.title = "Favorites"
