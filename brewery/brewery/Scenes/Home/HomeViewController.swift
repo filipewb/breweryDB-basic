@@ -7,21 +7,23 @@
 
 import UIKit
 
+import UIKit
+
 final class HomeViewController: UIViewController, UIScrollViewDelegate {
-    lazy var interactor = BeersInteractorImpl()
+    lazy var interactor: BeersInteractor = BeersInteractorImpl()
     
     var yourDataArray: [Beer] = []
     var filteredDataArray: [Beer] = []
+    var pagedDataArray: [Beer] = []
     
     private var currentPage = 1
     private var isLoading = false
-    
     private var showFavoritesOnly = false
     
     private lazy var searchBar: UISearchBar = {
         let search = UISearchBar()
         search.placeholder = "Search"
-        search.barTintColor = UIColor(cgColor: CGColor(red: 74, green: 144, blue: 226, alpha: 1))
+        search.barTintColor = .white
         search.delegate = self
         search.translatesAutoresizingMaskIntoConstraints = false
         return search
@@ -51,80 +53,69 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
     }()
     
     private lazy var activityIndicator: UIActivityIndicatorView = {
-        let indicator = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
+        let indicator = UIActivityIndicatorView(style: .medium)
         indicator.hidesWhenStopped = true
         indicator.translatesAutoresizingMaskIntoConstraints = false
         return indicator
     }()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Beer List"
-        view.backgroundColor = UIColor(cgColor: CGColor(red: 244, green: 244, blue: 244, alpha: 1.0))
-        
-        interactor.getBeers(page: 1) { [weak self] result in
-            switch result {
-            case .success(let beers):
-                self?.yourDataArray = beers
-                self?.updateFavoriteStates()
-                self?.filteredDataArray = self?.yourDataArray ?? []
-                self?.tableView.reloadData()
-            case .failure(let error):
-                print(error)
-                break
-            }
-        }
-        
-        if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
-            for index in 0..<yourDataArray.count {
-                if favoriteBeerIds.contains(yourDataArray[index].id) {
-                    var mutableBeer = yourDataArray[index]
-                    mutableBeer.isFavorite = true
-                    yourDataArray[index] = mutableBeer
-                }
-            }
-        }
-
-        func isBeerFavorite(item: Beer) -> Bool {
-            if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
-                return favoriteBeerIds.contains(item.id)
-            }
-            return false
-        }
-        
-        tableView.register(BeerTableViewCell.self, forCellReuseIdentifier: "BeerCell")
-        tableView.addSubview(activityIndicator)
-        
-        setupLayout()
-        setupConstraint()
+        setupUI()
+        fetchInitialData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        updateDataAndReloadTable()
         
-        tableView.reloadData()
-        
-        if let selectedIndexPath = tableView.indexPathForSelectedRow {
-            tableView.deselectRow(at: selectedIndexPath, animated: true)
-        }
-        
-        updateFavoriteStates()
+        filterButton.title = "All"
+        showFavoritesOnly = false
     }
     
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        if offsetY > contentHeight - scrollView.frame.size.height {
-            activityIndicator.startAnimating()
-            loadMoreData()
-        }
+    func setupUI() {
+        title = "Beer List"
+        view.backgroundColor = .lightGray
+        setupSubviews()
+        setupConstraints()
     }
     
-    func isBeerFavorite(item: Beer) -> Bool {
-        if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
-            return favoriteBeerIds.contains(item.id)
+    func setupSubviews() {
+        view.addSubview(searchBar)
+        view.addSubview(tableView)
+        navigationItem.rightBarButtonItem = filterButton
+        tableView.register(BeerTableViewCell.self, forCellReuseIdentifier: "BeerCell")
+        tableView.addSubview(activityIndicator)
+    }
+    
+    func setupConstraints() {
+        NSLayoutConstraint.activate([
+            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            activityIndicator.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: tableView.bottomAnchor),
+        ])
+    }
+    
+    func fetchInitialData() {
+        interactor.getBeers(page: currentPage) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let beers):
+                self.yourDataArray = beers
+                self.updateFavoriteStates()
+                self.pagedDataArray = beers // Atualiza pagedDataArray com os dados da primeira página
+                self.filteredDataArray = self.yourDataArray
+                self.tableView.reloadData()
+            case .failure(let error):
+                print(error)
+            }
         }
-        return false
     }
     
     func updateFavoriteStates() {
@@ -134,27 +125,25 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
         tableView.reloadData()
     }
     
-    private func setupLayout() {
-        view.addSubview(searchBar)
-        view.addSubview(tableView)
-        
-        navigationItem.rightBarButtonItem = filterButton
+    func isBeerFavorite(item: Beer) -> Bool {
+        if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
+            return favoriteBeerIds.contains(item.id)
+        }
+        return false
     }
     
-    private func setupConstraint() {
-        NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
-            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            activityIndicator.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: tableView.bottomAnchor),
-        ])
+    func updateDataAndReloadTable() {
+        interactor.getBeers(page: 1) { [weak self] result in
+            switch result {
+            case .success(let beers):
+                self?.yourDataArray = beers
+                self?.updateFavoriteStates()
+                self?.filteredDataArray = self?.yourDataArray ?? []
+                self?.tableView.reloadData()
+            case .failure(let error):
+                print(error)
+            }
+        }
     }
     
     @objc func filterButtonTapped() {
@@ -174,19 +163,25 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
             isLoading = true
             currentPage += 1
             interactor.getBeers(page: currentPage) { [weak self] result in
+                guard let self = self else { return }
                 switch result {
                 case .success(let beers):
                     if !beers.isEmpty {
-                        self?.yourDataArray.append(contentsOf: beers)
-                        self?.updateFavoriteStates()
-                        self?.filteredDataArray = self?.yourDataArray ?? []
-                        self?.tableView.reloadData()
+                        self.pagedDataArray = beers // Atualiza pagedDataArray com os novos dados paginados
+                        self.yourDataArray.append(contentsOf: beers)
+                        self.updateFavoriteStates()
+                        if self.showFavoritesOnly {
+                            self.filteredDataArray = self.yourDataArray.filter { $0.isFavorite }
+                        } else {
+                            self.filteredDataArray = self.yourDataArray
+                        }
+                        self.tableView.reloadData()
                     }
                 case .failure(let error):
                     print(error)
                 }
-                self?.isLoading = false
-                self?.activityIndicator.stopAnimating()
+                self.isLoading = false
+                self.activityIndicator.stopAnimating()
             }
         }
     }
@@ -225,11 +220,21 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedBeer = filteredDataArray[indexPath.row]
-        
         let details = DetailsViewController()
         details.selectedItem = selectedBeer
-        
         self.navigationController?.pushViewController(details, animated: true)
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let screenHeight = scrollView.frame.size.height
+        if offsetY + screenHeight > contentHeight {
+            if !isLoading {
+                activityIndicator.startAnimating()
+                loadMoreData()
+            }
+        }
     }
 }
 
