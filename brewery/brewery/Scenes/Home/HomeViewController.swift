@@ -7,8 +7,6 @@
 
 import UIKit
 
-import UIKit
-
 final class HomeViewController: UIViewController, UIScrollViewDelegate {
     lazy var interactor: BeersInteractor = BeersInteractorImpl()
     
@@ -39,7 +37,7 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
     
     private lazy var emptyResultLabel: UILabel = {
         let label = UILabel()
-        label.text = "Nenhum resultado encontrado"
+        label.text = "No results found"
         label.textAlignment = .center
         label.textColor = .gray
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -109,7 +107,7 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
             case .success(let beers):
                 self.yourDataArray = beers
                 self.updateFavoriteStates()
-                self.pagedDataArray = beers // Atualiza pagedDataArray com os dados da primeira página
+                self.pagedDataArray = beers
                 self.filteredDataArray = self.yourDataArray
                 self.tableView.reloadData()
             case .failure(let error):
@@ -167,7 +165,7 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
                 switch result {
                 case .success(let beers):
                     if !beers.isEmpty {
-                        self.pagedDataArray = beers // Atualiza pagedDataArray com os novos dados paginados
+                        self.pagedDataArray = beers
                         self.yourDataArray.append(contentsOf: beers)
                         self.updateFavoriteStates()
                         if self.showFavoritesOnly {
