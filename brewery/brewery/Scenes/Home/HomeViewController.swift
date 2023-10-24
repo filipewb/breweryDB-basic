@@ -150,9 +150,11 @@ final class HomeViewController: UIViewController {
 extension HomeViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
-//            filteredDataArray = yourDataArray
+            filteredDataArray = yourDataArray
         } else {
-//            filteredDataArray = yourDataArray.filter { $0.lowercased().contains(searchText.lowercased()) }
+            filteredDataArray = yourDataArray.filter { beer in
+                return beer.name.lowercased().contains(searchText.lowercased())
+            }
         }
         tableView.reloadData()
     }
