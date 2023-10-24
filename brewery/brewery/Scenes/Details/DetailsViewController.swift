@@ -7,7 +7,7 @@
 
 import UIKit
 
-class DetailsViewController: UIViewController {
+final class DetailsViewController: UIViewController {
     var selectedItem: Beer?
     
     private lazy var scrollView: UIScrollView = {
@@ -54,55 +54,7 @@ class DetailsViewController: UIViewController {
         self.title = "Detalhes"
         view.backgroundColor = UIColor(cgColor: CGColor(red: 250, green: 250, blue: 250, alpha: 1.0))
         
-        if let selectedItem = selectedItem {
-            labelTitle.text = selectedItem.name
-            labelSubTitle.text = selectedItem.tagline
-            descriptionLabel.text = selectedItem.description
-            
-            if let imageURL = selectedItem.imageURL {
-                URLSession.shared.dataTask(with: imageURL) { data, response, error in
-                    if let data = data {
-                        DispatchQueue.main.async {
-                            if let image = UIImage(data: data) {
-                                self.image.image = image
-                            } else {
-                                self.image.image = UIImage(named: "placeholder.png")
-                            }
-                        }
-                    } else if let error = error {
-                        print("Erro ao carregar imagem: \(error.localizedDescription)")
-                        self.image.image = UIImage(named: "placeholder.png")
-                    }
-                }.resume()
-            } else {
-                self.image.image = UIImage(named: "placeholder.png")
-            }
-        }
-        
-        let backButton = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backButtonTapped))
-        backButton.tintColor = .white
-        self.navigationItem.leftBarButtonItem = backButton
-        
-        let favoriteButton = UIBarButtonItem(image: UIImage(systemName: "star"), style: .plain, target: self, action: #selector(favoriteButtonTapped))
-        favoriteButton.tintColor = .white
-        self.navigationItem.rightBarButtonItem = favoriteButton
-        
-        if let selectedItem = selectedItem {
-            if selectedItem.isFavorite {
-                self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star.fill")
-            } else {
-                self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star")
-            }
-        }
-        
-        if let selectedItem = selectedItem {
-            var updatedBeer = selectedItem
-            updatedBeer.isFavorite = isBeerFavorite(item: selectedItem)
-            self.selectedItem = updatedBeer
-            updateFavoriteButtonUI()
-            saveFavoriteBeers()
-        }
-        
+        updateUI()
         setupView()
         setupConstraints()
     }
@@ -154,6 +106,53 @@ class DetailsViewController: UIViewController {
         ])
     }
     
+    private func updateUI() {
+        if let selectedItem = selectedItem {
+            labelTitle.text = selectedItem.name
+            labelSubTitle.text = selectedItem.tagline
+            descriptionLabel.text = selectedItem.description
+            
+            if let imageURL = selectedItem.imageURL {
+                loadImage(from: imageURL)
+            } else {
+                image.image = UIImage(named: "placeholder.png")
+            }
+        }
+        
+        setupNavigationButtons()
+    }
+    
+    private func loadImage(from url: URL) {
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let data = data {
+                DispatchQueue.main.async {
+                    if let image = UIImage(data: data) {
+                        self.image.image = image
+                    } else {
+                        self.image.image = UIImage(named: "placeholder.png")
+                    }
+                }
+            } else if let error = error {
+                print("Error loading image: \(error.localizedDescription)")
+                self.image.image = UIImage(named: "placeholder.png")
+            }
+        }.resume()
+    }
+    
+    private func setupNavigationButtons() {
+        let backButton = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backButtonTapped))
+        backButton.tintColor = .white
+        self.navigationItem.leftBarButtonItem = backButton
+        
+        let favoriteButton = UIBarButtonItem(image: favoriteButtonImage(), style: .plain, target: self, action: #selector(favoriteButtonTapped))
+        favoriteButton.tintColor = .white
+        self.navigationItem.rightBarButtonItem = favoriteButton
+    }
+    
+    private func favoriteButtonImage() -> UIImage? {
+        return selectedItem?.isFavorite ?? false ? UIImage(systemName: "star.fill") : UIImage(systemName: "star")
+    }
+    
     @objc func backButtonTapped() {
         navigationController?.popViewController(animated: true)
     }
@@ -161,19 +160,14 @@ class DetailsViewController: UIViewController {
     @objc func favoriteButtonTapped() {
         selectedItem?.isFavorite.toggle()
         updateFavoriteButtonUI()
-
         saveFavoriteBeers()
     }
 
-    func updateFavoriteButtonUI() {
-        if selectedItem?.isFavorite ?? false {
-            self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star.fill")
-        } else {
-            self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star")
-        }
+    private func updateFavoriteButtonUI() {
+        self.navigationItem.rightBarButtonItem?.image = favoriteButtonImage()
     }
 
-    func saveFavoriteBeers() {
+    private func saveFavoriteBeers() {
         var favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] ?? []
 
         if let selectedItem = selectedItem {
@@ -188,12 +182,11 @@ class DetailsViewController: UIViewController {
             }
 
             UserDefaults.standard.set(favoriteBeerIds, forKey: "favoriteBeerIds")
-            
             UserDefaults.standard.synchronize()
         }
     }
     
-    func isBeerFavorite(item: Beer) -> Bool {
+    private func isBeerFavorite(item: Beer) -> Bool {
         if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
             return favoriteBeerIds.contains(item.id)
         }
