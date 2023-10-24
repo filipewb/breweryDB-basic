@@ -7,11 +7,14 @@
 
 import UIKit
 
-final class HomeViewController: UIViewController {
+final class HomeViewController: UIViewController, UIScrollViewDelegate {
     lazy var interactor = BeersInteractorImpl()
     
     var yourDataArray: [Beer] = []
     var filteredDataArray: [Beer] = []
+    
+    private var currentPage = 1
+    private var isLoading = false
     
     private var showFavoritesOnly = false
     
@@ -45,6 +48,13 @@ final class HomeViewController: UIViewController {
         let button = UIBarButtonItem(title: "All", style: .plain, target: self, action: #selector(filterButtonTapped))
         button.tintColor = .white
         return button
+    }()
+    
+    private lazy var activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
+        indicator.hidesWhenStopped = true
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
     }()
 
     override func viewDidLoad() {
@@ -83,6 +93,7 @@ final class HomeViewController: UIViewController {
         }
         
         tableView.register(BeerTableViewCell.self, forCellReuseIdentifier: "BeerCell")
+        tableView.addSubview(activityIndicator)
         
         setupLayout()
         setupConstraint()
@@ -98,6 +109,15 @@ final class HomeViewController: UIViewController {
         }
         
         updateFavoriteStates()
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        if offsetY > contentHeight - scrollView.frame.size.height {
+            activityIndicator.startAnimating()
+            loadMoreData()
+        }
     }
     
     func isBeerFavorite(item: Beer) -> Bool {
@@ -131,6 +151,9 @@ final class HomeViewController: UIViewController {
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            activityIndicator.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: tableView.bottomAnchor),
         ])
     }
     
@@ -144,6 +167,28 @@ final class HomeViewController: UIViewController {
             filterButton.title = "All"
         }
         tableView.reloadData()
+    }
+    
+    func loadMoreData() {
+        if !isLoading {
+            isLoading = true
+            currentPage += 1
+            interactor.getBeers(page: currentPage) { [weak self] result in
+                switch result {
+                case .success(let beers):
+                    if !beers.isEmpty {
+                        self?.yourDataArray.append(contentsOf: beers)
+                        self?.updateFavoriteStates()
+                        self?.filteredDataArray = self?.yourDataArray ?? []
+                        self?.tableView.reloadData()
+                    }
+                case .failure(let error):
+                    print(error)
+                }
+                self?.isLoading = false
+                self?.activityIndicator.stopAnimating()
+            }
+        }
     }
 }
 
