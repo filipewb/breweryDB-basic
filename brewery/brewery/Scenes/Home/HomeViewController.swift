@@ -44,9 +44,7 @@ final class HomeViewController: UIViewController {
         title = "Beer List"
         view.backgroundColor = UIColor(cgColor: CGColor(red: 244, green: 244, blue: 244, alpha: 1.0))
         
-        // Carregar IDs das cervejas favoritas do UserDefaults
         if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
-            // Atualizar a propriedade isFavorite das cervejas
             for index in 0..<yourDataArray.count {
                 if favoriteBeerIds.contains(yourDataArray[index].id) {
                     var mutableBeer = yourDataArray[index]
@@ -89,7 +87,6 @@ final class HomeViewController: UIViewController {
             tableView.deselectRow(at: selectedIndexPath, animated: true)
         }
         
-        // Atualize o estado das cervejas favoritas
         updateFavoriteStates()
     }
     
