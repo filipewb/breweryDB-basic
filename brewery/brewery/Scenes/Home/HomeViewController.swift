@@ -156,6 +156,15 @@ final class HomeViewController: UIViewController, UIScrollViewDelegate {
         tableView.reloadData()
     }
     
+    @objc func refreshData() {
+        if showFavoritesOnly {
+            updateFavoriteStates()
+            filteredDataArray = yourDataArray.filter { $0.isFavorite }
+            tableView.reloadData()
+        }
+        tableView.refreshControl?.endRefreshing()
+    }
+    
     func loadMoreData() {
         if !isLoading {
             isLoading = true
