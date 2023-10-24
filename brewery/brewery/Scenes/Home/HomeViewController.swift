@@ -11,7 +11,9 @@ final class HomeViewController: UIViewController {
     lazy var interactor = BeersInteractorImpl()
     
     var yourDataArray: [Beer] = []
-    var filteredDataArray: [String] = []
+    var filteredDataArray: [Beer] = []
+    
+    private var showFavoritesOnly = false
     
     private lazy var searchBar: UISearchBar = {
         let search = UISearchBar()
@@ -38,11 +40,30 @@ final class HomeViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    private lazy var filterButton: UIBarButtonItem = {
+        let button = UIBarButtonItem(title: "All", style: .plain, target: self, action: #selector(filterButtonTapped))
+        button.tintColor = .white
+        return button
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Beer List"
         view.backgroundColor = UIColor(cgColor: CGColor(red: 244, green: 244, blue: 244, alpha: 1.0))
+        
+        interactor.getBeers(page: 1) { [weak self] result in
+            switch result {
+            case .success(let beers):
+                self?.yourDataArray = beers
+                self?.updateFavoriteStates()
+                self?.filteredDataArray = self?.yourDataArray ?? []
+                self?.tableView.reloadData()
+            case .failure(let error):
+                print(error)
+                break
+            }
+        }
         
         if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
             for index in 0..<yourDataArray.count {
@@ -53,18 +74,7 @@ final class HomeViewController: UIViewController {
                 }
             }
         }
-        
-        interactor.getBeers(page: 1) { [weak self] result in
-            switch result {
-            case .success(let beers):
-                self?.yourDataArray = beers
-                self?.tableView.reloadData()
-            case .failure(let error):
-                print(error)
-                break
-            }
-        }
-        
+
         func isBeerFavorite(item: Beer) -> Bool {
             if let favoriteBeerIds = UserDefaults.standard.array(forKey: "favoriteBeerIds") as? [Int] {
                 return favoriteBeerIds.contains(item.id)
@@ -107,6 +117,8 @@ final class HomeViewController: UIViewController {
     private func setupLayout() {
         view.addSubview(searchBar)
         view.addSubview(tableView)
+        
+        navigationItem.rightBarButtonItem = filterButton
     }
     
     private func setupConstraint() {
@@ -120,6 +132,18 @@ final class HomeViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
+    }
+    
+    @objc func filterButtonTapped() {
+        showFavoritesOnly.toggle() // Alternar o valor do filtro
+        if showFavoritesOnly {
+            filteredDataArray = yourDataArray.filter { $0.isFavorite }
+            filterButton.title = "Favorites"
+        } else {
+            filteredDataArray = yourDataArray
+            filterButton.title = "All"
+        }
+        tableView.reloadData()
     }
 }
 
@@ -136,24 +160,24 @@ extension HomeViewController: UISearchBarDelegate {
 
 extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if yourDataArray.isEmpty {
+        if filteredDataArray.isEmpty {
             tableView.backgroundView = emptyResultLabel
             return 0
         } else {
             tableView.backgroundView = nil
-            return yourDataArray.count
+            return filteredDataArray.count
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "BeerCell", for: indexPath) as! BeerTableViewCell
-        cell.beer = yourDataArray[indexPath.row]
+        cell.beer = filteredDataArray[indexPath.row]
         cell.accessoryType = .disclosureIndicator
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedBeer = yourDataArray[indexPath.row]
+        let selectedBeer = filteredDataArray[indexPath.row]
         
         let details = DetailsViewController()
         details.selectedItem = selectedBeer
